@@ -133,8 +133,7 @@ outputs:
      type:
        items:
        - 'null'
-       - items: File
-         type: array
+       - File
        type: array
      outputSource: map/star2_stat_files
    transcriptome_star_aligned_file:
@@ -146,8 +145,7 @@ outputs:
      type:
        items:
        - 'null'
-       - items: File
-         type: array
+       - File
        type: array
      outputSource: map/transcriptome_star_stat_files
    featurecounts_counts:

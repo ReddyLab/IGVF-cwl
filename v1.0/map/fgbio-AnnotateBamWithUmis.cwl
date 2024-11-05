@@ -1,5 +1,6 @@
+#!/usr/bin/env cwl-runner
+cwlVersion: v1.2
 class: CommandLineTool
-cwlVersion: v1.0
 doc: |
   AnnotateBamWithUmis
   ------------------------------------------------------------------------------------------------------------------------
@@ -17,74 +18,78 @@ doc: |
   In order to avoid sorting the input files, the entire UMI fastq file is read into memory. As a result the program needs
   to be run with memory proportional the size of the (uncompressed) fastq.
 requirements:
-   InlineJavascriptRequirement: {}
-   ShellCommandRequirement: {}
+  InlineJavascriptRequirement: {}
+  ShellCommandRequirement: {}
+  NetworkAccess:
+    networkAccess: true
+  LoadListingRequirement:
+    loadListing: deep_listing
 hints:
-   DockerRequirement:
-     dockerPull: reddylab/fgbio:0.8.1
+  DockerRequirement:
+    dockerPull: reddylab/fgbio:0.8.1
 inputs:
-   input:
-     type: File
-     inputBinding:
-       position: 5
-       prefix: -i
-     doc:  The input SAM or BAM file.
-   fastq:
-     type: File
-     inputBinding:
-       position: 5
-       prefix: -f
-     doc: Input FASTQ file with UMI reads.
-   attribute:
-     type: string?
-     default: RX
-     inputBinding:
-       position: 5
-       prefix: -t
-     doc: |
+  input:
+    type: File
+    inputBinding:
+      position: 5
+      prefix: -i
+    doc: The input SAM or BAM file.
+  fastq:
+    type: File
+    inputBinding:
+      position: 5
+      prefix: -f
+    doc: Input FASTQ file with UMI reads.
+  attribute:
+    type: string?
+    default: RX
+    inputBinding:
+      position: 5
+      prefix: -t
+    doc: |
       The BAM attribute to store UMIs in. [Default: RX].
-   fail-fast:
-     type: boolean?
-     inputBinding:
-       position: 5
-       prefix: --fail-fast
-     doc: |
-       If set, fail on the first missing UMI. [Default: false].
-   outfile:
-     type: string?
-     doc: Output BAM file to write.
-   java_opts:
-     type: string?
-     inputBinding:
-       position: 1
-       shellQuote: false
-     doc: JVM arguments should be a quoted, space separated list (e.g. "-Xms128m -Xmx512m")
-   fgbio_jar_path:
-     type: string
-     inputBinding:
-       position: 2
-       prefix: -jar
-     doc: Path to the fgbio.jar file
-outputs:
-   output:
-     type: File
-     secondaryFiles:
-       - ^.bai
-     outputBinding:
-       glob: |
-         ${return inputs.output || inputs.input.nameroot + ".with_umis" + inputs.input.nameext}
+  fail-fast:
+    type: boolean?
+    inputBinding:
+      position: 5
+      prefix: --fail-fast
+    doc: |
+      If set, fail on the first missing UMI. [Default: false].
+  outfile:
+    type: string?
+    doc: Output BAM file to write.
+  java_opts:
+    type: string?
+    inputBinding:
+      position: 1
+      shellQuote: false
+    doc: JVM arguments should be a quoted, space separated list (e.g. "-Xms128m -Xmx512m")
+  fgbio_jar_path:
+    type: string
+    inputBinding:
+      position: 2
+      prefix: -jar
+    doc: Path to the fgbio.jar file
 baseCommand:
- - java
+- java
 arguments:
- - valueFrom: $(runtime.tmpdir)
-   position: 3
-   prefix: --tmp-dir
- - valueFrom: Debug
-   position: 3
-   prefix: --log-level
- - valueFrom: AnnotateBamWithUmis
-   position: 4
- - valueFrom: |
+- valueFrom: $(runtime.tmpdir)
+  position: 3
+  prefix: --tmp-dir
+- valueFrom: Debug
+  position: 3
+  prefix: --log-level
+- valueFrom: AnnotateBamWithUmis
+  position: 4
+- valueFrom: |
     ${ return runtime.outdir + "/" + (inputs.outfile || inputs.input.nameroot + ".with_umis" + inputs.input.nameext) }
-   position: 5
-   prefix: --output
+  position: 5
+  prefix: --output
+outputs:
+  output:
+    type: File
+    secondaryFiles:
+    - ^.bai
+    outputBinding:
+      glob: |
+        ${return inputs.output || inputs.input.nameroot + ".with_umis" + inputs.input.nameext}

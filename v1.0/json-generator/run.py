@@ -9,8 +9,9 @@ from jinja2 import Environment, FileSystemLoader
 
 import consts
 
+
 encoding = sys.getfilesystemencoding()
-EXEC_DIR = os.path.dirname(unicode(__file__, encoding))
+EXEC_DIR = os.path.dirname(str(__file__))
 
 
 def save_or_print_json(json_str, outdir, json_name):
@@ -18,8 +19,8 @@ def save_or_print_json(json_str, outdir, json_name):
         with open("%s/%s.json" % (outdir, json_name), 'w') as cout:
             cout.writelines(json_str)
     else:
-        print "#%s.json" % json_name
-        print json_str
+        print("#%s.json" % json_name)
+        print(json_str)
 
 
 def is_false(v):
@@ -57,7 +58,7 @@ class MetadataParser(object):
         self.purge_undef_args()
 
     def purge_undef_args(self):
-        for empty_key in [k for k, v in self.__dict__.iteritems() if v is None]:
+        for empty_key in [k for k, v in self.__dict__.items() if v is None]:
             del self.__dict__[empty_key]
 
     def render_json(self, wf_conf, samples_list, data_dir, template_name):
@@ -71,7 +72,7 @@ class MetadataParser(object):
             rows = pd.read_excel(self.file_path,
                                true_values=['Yes', 'Y', 'yes', 'y', 1],
                                false_values=['No', 'N', 'no', 'n', 0])
-        except XLRDError:
+        except (XLRDError, ValueError):
             rows = pd.read_csv(self.file_path,
                                true_values=['Yes', 'Y', 'yes', 'y', '1'],
                                false_values=['No', 'N', 'no', 'n', '0'], sep='\t',
@@ -82,9 +83,9 @@ class MetadataParser(object):
         return rows
 
     def update_paths(self, ref_data_obj):
-        options = ref_data_obj.__dict__.iteritems()
+        options = iter(ref_data_obj.__dict__.items())
         if self.preserve_arguments:
-            options = {(k, v) for k, v in ref_data_obj.__dict__.iteritems() if k not in self.__dict__}
+            options = {(k, v) for k, v in ref_data_obj.__dict__.items() if k not in self.__dict__}
         self.__dict__.update(options)
 
 
@@ -117,17 +118,17 @@ class MetadataParserChipseq(object):
             read_type = r['paired-end or single-end'].lower()
             sample_info = {'treatment': r['name']}
             wf_key = '-'.join([read_type])
-            if 'control' in r.keys() and r['control'] and type(r['control']) != float:  # After reading this metadata info, this will contain a nan (float) if undetermined
+            if 'control' in list(r.keys()) and r['control'] and type(r['control']) != float:  # After reading this metadata info, this will contain a nan (float) if undetermined
                 sample_info['control'] = r['control']
                 wf_key += '-with-control'
             wf_conf_dict[wf_key] = {'rt': read_type,
-                                    'st': sample_info.keys()}
+                                    'st': list(sample_info.keys())}
             genome = consts.GENOME  # Default genome
-            if 'genome' in r.keys():
+            if 'genome' in list(r.keys()):
                 genome = r['genome']
 
             samples_dict[wf_key].append([sample_info, genome])
-        for wf_key, samples_genomes in samples_dict.iteritems():
+        for wf_key, samples_genomes in samples_dict.items():
             if self.obj.separate_jsons:
                 for si, s in enumerate(sorted(samples_genomes)):
                     sample, genome = s[0], s[1]
@@ -136,7 +137,7 @@ class MetadataParserChipseq(object):
                     yield self.render_json(wf_conf_dict[wf_key], [sample], data_dir, self.experiment_type), wf_key, si
 
             else:
-                samples_list, genomes_list = zip(*samples_genomes)
+                samples_list, genomes_list = list(zip(*samples_genomes))
                 if len(set(genomes_list)) > 1:
                     raise Exception('More than one genome specified (%s). Please create a different metadata file'
                                     ' per genome or provide a sjdb and specify the --separate-jsons argument' %
@@ -173,14 +174,14 @@ class MetadataParserAtacseq(object):
             sample_info = {'treatment': r['name']}
             wf_key = '-'.join([read_type])
             genome = consts.GENOME  # Default genome
-            if 'genome' in r.keys():
+            if 'genome' in list(r.keys()):
                 genome = r['genome']
-            if not ('blacklist removal' in r.keys() and is_false(r['blacklist removal'])):
+            if not ('blacklist removal' in list(r.keys()) and is_false(r['blacklist removal'])):
                 wf_key += '-blacklist-removal'
 
             wf_conf_dict[wf_key] = {'rt': read_type}
             samples_dict[wf_key].append([sample_info, genome])
-        for wf_key, samples_genomes in samples_dict.iteritems():
+        for wf_key, samples_genomes in samples_dict.items():
             if self.obj.separate_jsons:
                 for si, s in enumerate(sorted(samples_genomes)):
                     sample, genome = s[0], s[1]
@@ -231,10 +232,10 @@ class MetadataParserRnaseq(object):
             sample_name = r['name']
             strand_specific = r['strand specificity']
             genome = consts.GENOME  # Default genome
-            if 'genome' in r.keys():
+            if 'genome' in list(r.keys()):
                 genome = r['genome']
             ercc_spikein = False
-            if 'with ercc spike-in' in r.keys():
+            if 'with ercc spike-in' in list(r.keys()):
                 ercc_spikein = r['with ercc spike-in']
             kws = [read_type,  strand_specific]
             if self.skip_star_2pass:
@@ -242,10 +243,10 @@ class MetadataParserRnaseq(object):
             wf_key = '-'.join(kws)
             wf_conf_dict[wf_key] = {'rt': read_type, 'sn': sample_name}
             read_length = self.read_length
-            if 'read length' in r.keys():
+            if 'read length' in list(r.keys()):
                 read_length = int(r['read length'])
             samples_dict[wf_key].append([sample_name, genome, ercc_spikein, read_length])
-        for wf_key, samples_genomes in samples_dict.iteritems():
+        for wf_key, samples_genomes in samples_dict.items():
             if self.obj.separate_jsons:
                 for si, s in enumerate(sorted(samples_genomes)):
                     sample, genome, ercc_spikein, read_length = s
@@ -305,17 +306,17 @@ class MetadataParserStarrseq(object):
             read_type = r['paired-end or single-end'].lower()
             sample_name = r['name']
             genome = consts.GENOME  # Default genome
-            if 'genome' in r.keys():
+            if 'genome' in list(r.keys()):
                 genome = r['genome']
             kws = [read_type]
             wf_key = '-'.join(kws)
-            with_umis = 'umis' in r.keys() and not is_false(r['umis'])
+            with_umis = 'umis' in list(r.keys()) and not is_false(r['umis'])
             if with_umis:
                 wf_key += '-umis'
 
             wf_conf_dict[wf_key] = {'rt': read_type, 'sn': sample_name, 'umis': with_umis}
             samples_dict[wf_key].append([sample_name, genome])
-        for wf_key, samples_genomes in samples_dict.iteritems():
+        for wf_key, samples_genomes in samples_dict.items():
             if self.obj.separate_jsons:
                 for si, s in enumerate(sorted(samples_genomes)):
                     sample, genome = s[0], s[1]
@@ -404,7 +405,7 @@ def main():
     args = parser.parse_args()
 
     if os.path.isfile(args.outdir):
-        print "[ERROR] :: Target output directory is an existing file."
+        print("[ERROR] :: Target output directory is an existing file.")
         sys.exit(1)
 
     if args.outdir and not os.path.exists(args.outdir):

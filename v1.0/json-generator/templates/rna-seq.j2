@@ -37,6 +37,6 @@
     "nthreads_map": {{ nthreads }},
     "nthreads_peakcall": {{ nthreads }},
     "nthreads_quant": {{ nthreads }},
-    "trimmomatic_jar_path": "/data/reddylab/software/Trimmomatic-0.32/trimmomatic-0.32.jar",
+    "trimmomatic_jar_path": "{{ conf_args.trimmomatic_jar }}",
     "trimmomatic_java_opts": "-Xms{{ (conf_args.mem/2) | round | int }}m -Xmx{{ conf_args.mem }}m"
 }

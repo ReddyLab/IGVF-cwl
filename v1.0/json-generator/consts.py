@@ -1,6 +1,7 @@
 # Programs
 trimmomatic_jar = "/opt/apps/rhel7/Trimmomatic-0.39/trimmomatic-0.39.jar"
 picard_jar = "/opt/apps/rhel7/picard/2.18.2/picard.jar"
+fgbio_jar = "/opt/apps/rhel7/fgbio-1.0.0/fgbio.jar"
 
 # Auxiliary reference files (species agnostic)
 as_narrowPeak = '/hpc/group/gersbachlab/Reference_Data/ENCODE/kent/src/hg/lib/encode/narrowPeak.as'

@@ -130,7 +130,7 @@ class MetadataParserChipseq(object):
             samples_dict[wf_key].append([sample_info, genome])
         for wf_key, samples_genomes in samples_dict.items():
             if self.obj.separate_jsons:
-                for si, s in enumerate(sorted(samples_genomes)):
+                for si, s in enumerate(sorted(samples_genomes, key=lambda d: f'{str(d[0])}-{str(d[1])}')):
                     sample, genome = s[0], s[1]
                     ref_dataset = consts.ReferenceDataset(genome)
                     self.update_paths(ref_dataset)
@@ -183,7 +183,7 @@ class MetadataParserAtacseq(object):
             samples_dict[wf_key].append([sample_info, genome])
         for wf_key, samples_genomes in samples_dict.items():
             if self.obj.separate_jsons:
-                for si, s in enumerate(sorted(samples_genomes)):
+                for si, s in enumerate(sorted(samples_genomes, key=lambda d: f'{str(d[0])}-{str(d[1])}')):
                     sample, genome = s[0], s[1]
                     ref_dataset = consts.ReferenceDataset(genome)
                     if 'blacklist-removal' not in wf_key:
@@ -248,7 +248,7 @@ class MetadataParserRnaseq(object):
             samples_dict[wf_key].append([sample_name, genome, ercc_spikein, read_length])
         for wf_key, samples_genomes in samples_dict.items():
             if self.obj.separate_jsons:
-                for si, s in enumerate(sorted(samples_genomes)):
+                for si, s in enumerate(sorted(samples_genomes, key=lambda d: f'{str(d[0])}-{str(d[1])}')):
                     sample, genome, ercc_spikein, read_length = s
                     ref_dataset = consts.ReferenceDataset(genome,
                                                           read_length=read_length,
@@ -318,7 +318,7 @@ class MetadataParserStarrseq(object):
             samples_dict[wf_key].append([sample_name, genome])
         for wf_key, samples_genomes in samples_dict.items():
             if self.obj.separate_jsons:
-                for si, s in enumerate(sorted(samples_genomes)):
+                for si, s in enumerate(sorted(samples_genomes, key=lambda d: f'{str(d[0])}-{str(d[1])}')):
                     sample, genome = s[0], s[1]
                     ref_dataset = consts.ReferenceDataset(genome,
                                                           read_length=self.read_length,
